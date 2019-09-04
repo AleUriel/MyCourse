@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using System.IO;
+using Microsoft.AspNetCore.Mvc;
 
 namespace MyCourse
 {
@@ -17,15 +19,22 @@ namespace MyCourse
         {
             //ha lo scopo di aggiungere i servizi richiesti
             //come ed. ControllerFactory, ecc....
-            services.AddMvc();
+            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IApplicationLifetime lifetime)
         {
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+
+                //Aggiungiamo un file per notificare al BrowserSync che deve aggiornare la pagina
+                lifetime.ApplicationStarted.Register(() =>
+                {
+                    string filePath = Path.Combine(env.ContentRootPath,"bin/reload.txt");
+                    File.WriteAllText(filePath, DateTime.Now.ToString());
+                });
             }
 
             app.UseStaticFiles();
